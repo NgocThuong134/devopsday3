@@ -67,7 +67,7 @@ pipeline {
                     echo 'Deploying to Production...'
                     sshagent(['aws-ssh-key']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no ${PROD_USER}@$PRO_SERVER} << EOF
+                        ssh -o StrictHostKeyChecking=no ${PROD_USER}@$PROD_SERVER} << EOF
                          docker container stop server-golang || echo "No container to stop"
                          docker container rm server-golang || echo "No container to remove"
                          docker image rm ${DOCKER_IMAGE}:${DOCKER_TAG} || echo "No image to remove"
