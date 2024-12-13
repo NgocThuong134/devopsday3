@@ -6,7 +6,7 @@ pipeline {
         DOCKER_TAG = 'latest'
     }
 
-    stages {
+    stages {4 
         stage('Clone Repository') {
             steps {
                 git branch: 'main', url: 'https://github.com/NgocThuong134/devopsday3.git'
