@@ -12,8 +12,8 @@ type Item struct {
 }
 
 var items = []Item{
-    {ID: "1", Name: "Item One"},
-    {ID: "2", Name: "Item Two"},
+    {ID: "1", Name: "Sách giáo khoa"},
+    {ID: "2", Name: "Báo nhân dân"},
 }
 
 func main() {
@@ -24,13 +24,18 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"message": "pong"})
 	})
 
+    // Route hello
+	router.GET("/hello", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "Hello !!!"})
+	})
+
     // GET method
-    router.GET("/items", func(c *gin.Context) {
+    router.GET("/api/v1/items", func(c *gin.Context) {
         c.JSON(http.StatusOK, items)
     })
 
     // POST method
-    router.POST("/items", func(c *gin.Context) {
+    router.POST("/api/v1/items", func(c *gin.Context) {
         var newItem Item
         if err := c.ShouldBindJSON(&newItem); err == nil {
             items = append(items, newItem)
@@ -41,7 +46,7 @@ func main() {
     })
 
     // PUT method
-    router.PUT("/items/:id", func(c *gin.Context) {
+    router.PUT("/api/v1/items/:id", func(c *gin.Context) {
         id := c.Param("id")
         var updatedItem Item
         if err := c.ShouldBindJSON(&updatedItem); err == nil {
@@ -59,7 +64,7 @@ func main() {
     })
 
     // DELETE method
-    router.DELETE("/items/:id", func(c *gin.Context) {
+    router.DELETE("/api/v1/items/:id", func(c *gin.Context) {
         id := c.Param("id")
         for i, item := range items {
             if item.ID == id {
