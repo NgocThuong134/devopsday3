@@ -6,6 +6,8 @@ pipeline {
         DOCKER_TAG = 'latest'
         TELEGRAM_BOT_TOKEN = '7649334871:AAF9YVvIXp3SlCAVS27BOUWMwisFCDZM0y4'
         TELEGRAM_CHAT_ID = '-1002452635800'
+        PROD_SERVER = 'ec2-54-169-202-206.ap-southeast-1.compute.amazonaws.com'
+        PROD_USER =  'ubuntu'
     }
 
     stages {
@@ -41,13 +43,39 @@ pipeline {
 
         stage('Deploy Golang to DEV') {
             steps {
-                echo 'Deploying to DEV...'
+                script {
+                    echo 'Clearing server-golang-related images and containers...'
+                    sh '''
+                        docker container stop server-golang || echo "No container named server-golang to stop"
+                        docker container rm server-golang || echo "No container named server-golang to remove"
+                        docker image rm ${DOCKER_IMAGE}:${DOCKER_TAG} || echo "No image named ${DOCKER_IMAGE}:${DOCKER_TAG} to remove"
+                    '''
+                }
+                echo 'Deploying to DEV environment...'
                 sh 'docker image pull ngocthuong/server-golang:latest'
                 sh 'docker container stop server-golang || echo "this container does not exist"'
                 sh 'docker network create dev || echo "this network exists"'
                 sh 'echo y | docker container prune '
 
                 sh 'docker container run -d --rm --name server-golang -p 5080:3000 --network dev ngocthuong/server-golang:latest'
+            }
+        }
+
+        stage ('Deploy to Production on AWS') {
+            steps{
+                script {
+                    echo 'Deploying to Production...'
+                    sshagent(['aws-ssh-key']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ${PROD_USER}@$PRO_SERVER} << EOF
+                         docker container stop server-golang || echo "No container to stop"
+                         docker container rm server-golang || echo "No container to remove"
+                         docker image rm ${DOCKER_IMAGE}:${DOCKER_TAG} || echo "No image to remove"
+                         docker image pull ${DOCKER_IMAGE}:${DOCKER_TAG}
+                         docker container run -d --rm --name server-golang -p 5081:5080 ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    '''
+                    }
+                }
             }
         }
     }
